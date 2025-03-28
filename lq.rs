@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tracing::*;
 
+/// Inputs format. Explicitly passed, inferred from file extension, or defaults to Yaml on stdin.
 #[derive(Copy, Debug, Default, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 enum Input {
     #[default]
@@ -39,8 +40,8 @@ enum Output {
 #[command(author, version, about)]
 struct Args {
     /// Input format of the input file or stdin
-    #[arg(long, value_enum, default_value_t)]
-    input: Input,
+    #[arg(long, value_enum)]
+    input: Option<Input>,
     /// Output format to convert the jq output into
     #[arg(long, value_enum, default_value_t)]
     output: Output,
@@ -257,20 +258,35 @@ impl Args {
         Ok(vec![json])
     }
 
+    fn infer_input_type(&self) -> Option<Input> {
+        if let Some(input) = self.input {
+            return Some(input); // always use what is asked for if explicit
+        }
+        let pbuf = self.file.clone()?;
+        let ext_os = pbuf.extension()?;
+        let ext = ext_os.to_string_lossy();
+        match ext.as_ref() {
+            "json" => Some(Input::Json),
+            "toml" => Some(Input::Toml),
+            "yaml" | "yml" => Some(Input::Yaml),
+            _ => None,
+        }
+    }
+
     fn read_input(&mut self) -> Result<Vec<u8>> {
-        let ser = match self.input {
-            Input::Yaml => self.read_yaml()?,
-            Input::Toml => serde_json::to_vec(&self.read_toml()?)?,
-            Input::Json => serde_json::to_vec(&self.read_json()?)?,
+        let ser = match self.infer_input_type() {
+            Some(Input::Yaml) | None => self.read_yaml()?,
+            Some(Input::Toml) => serde_json::to_vec(&self.read_toml()?)?,
+            Some(Input::Json) => serde_json::to_vec(&self.read_json()?)?,
         };
         debug!("input decoded as json: {}", String::from_utf8_lossy(&ser));
         Ok(ser)
     }
     fn read_input_multidoc(&mut self) -> Result<Vec<serde_json::Value>> {
-        let ser = match self.input {
-            Input::Yaml => self.read_yaml_docs()?,
-            Input::Toml => self.read_toml_docs()?,
-            Input::Json => self.read_json_docs()?,
+        let ser = match self.infer_input_type() {
+            Some(Input::Yaml) | None => self.read_yaml_docs()?,
+            Some(Input::Toml) => self.read_toml_docs()?,
+            Some(Input::Json) => self.read_json_docs()?,
         };
         //debug!("input decoded as json: {}", String::from_utf8_lossy(&ser));
         Ok(ser)

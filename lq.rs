@@ -169,6 +169,7 @@ impl Args {
             debug!("reading from stdin");
             Deserializer::from_reader(stdin())
         } else {
+            // NB: awkwardly prints a stack trace when people set RUST_STACKTRACE
             Self::try_parse_from(["cmd", "-h"])?;
             std::process::exit(2);
         };

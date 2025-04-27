@@ -33,7 +33,7 @@
 
 @test "jq_compat" {
   cat test/deploy.yaml | lq '.[] | select(.kind == "Deployment") | .spec.template.spec.containers[0].readinessProbe' -c > test/output.json
-  run jq ".httpGet.path" test/output.json
+  run lq ".httpGet.path" test/output.json
   echo "$output" && echo "$output" | grep '"/health"'
   rm test/output.json
 }
@@ -60,7 +60,7 @@
   run lq --input=toml -y '.package.edition' -r < Cargo.toml
   echo "$output" && echo "$output" | grep '2021'
 
-  run lq --input=toml '.dependencies.clap.features' -c < Cargo.toml
+  run lq '.dependencies.clap.features' -c Cargo.toml
   echo "$output" && echo "$output" | grep '["cargo","derive"]'
 }
 

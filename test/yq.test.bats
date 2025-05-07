@@ -59,6 +59,7 @@
 @test "toml" {
   run lq --input=toml -y '.package.edition' -r < Cargo.toml
   echo "$output" && echo "$output" | grep '2021'
+  run lq -Ty '.package.edition' -r < Cargo.toml
 
   run lq '.dependencies.clap.features' -c Cargo.toml
   echo "$output" && echo "$output" | grep '["cargo","derive"]'
@@ -87,6 +88,7 @@
 @test "json_input" {
   run lq --input=json ".ingredients | keys" -c < test/guacamole.json
   echo "$output" && echo "$output" | grep '["avocado","coriander","cumin","garlic","lime","onions","pepper","salt","tomatoes"]'
+  run lq -J ".ingredients | keys" -c < test/guacamole.json
 }
 
 @test "jq_modules" {

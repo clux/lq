@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/lq.svg)](https://crates.io/crates/lq)
 [![dependency status](https://deps.rs/repo/github/clux/lq/status.svg)](https://deps.rs/repo/github/clux/lq)
 
-A lightweight and portable [jq](https://jqlang.github.io/jq/) wrapper for doing arbitrary queries from **YAML**/**TOML**/**JSON** documents by converting to **JSON** and passing to `jq`, then returning the result either as raw `jq` output, or back into TOML or YAML.
+A lightweight and portable [jq](https://jqlang.github.io/jq/) style cli for doing jq queries/filters/maps/transforms on **YAML**/**TOML**/**JSON** documents by converting to **JSON** and passing data to `jq`. Output is raw `jq` output / TOML / YAML.
 
 ## Installation
 
@@ -19,53 +19,43 @@ or download a prebuilt from [releases](https://github.com/clux/lq/releases) eith
 cargo binstall lq
 ```
 
-**Note**: Depends on `jq` being installed.
-
-### lq as yq
-
-Because yaml is the default input language, you can use it as your top level `yq` executable with a symlink or alias:
-
-```sh
-# globally make yq be lq
-ln -s $(which lq) /usr/local/bin/yq
-
-# alias yq to lq in shell environment only
-alias yq=lq
-```
-
-This should be compatible with `python-yq`, but it has some differences with the go yq.
+**Note**: Requires `jq`.
 
 ## Why / Why Not
 
 ### jq compatibility
 
-- arbitrary `jq` usage on any input format (yaml/toml/json)
-- [same filter syntax](https://jqlang.github.io/jq/manual/#basic-filters) (shells out to `jq`)
+- arbitrary `jq` usage on any input format (yaml/toml/json) by going through json and jq
+- [same syntax](https://jqlang.github.io/jq/manual/), same filters, types, operators, conditionals, regexes, assignment, modules, etc
 - matches `jq`'s cli interface (only some extra input/output format controlling flags)
 - supports `jq` output formatters such as `-c`, `-r`, and `-j` (compact, raw, joined output resp)
-- supports [jq modules](https://jqlang.github.io/jq/manual/#modules) on all input formats
 
-### Features
+### Extra Features
 
-- reads __multidoc yaml__ input, handles [yaml merge keys](https://yaml.org/type/merge.html) (expanding tags)
-- splits __multidoc__ input by keys/fns into multiple files
+- supports __multidoc yaml__ input, handles [yaml merge keys](https://yaml.org/type/merge.html) (expanding tags)
+- supports __multidoc__ document splitting into expression based filenames
+- supports __in-place edits__ of documents
 - reads from __stdin xor file__ (file if last arg is a file)
-- output conversion shortcuts: `-y` (YAML) or `-t` (TOML)
-- drop-in replacement to [python-yq](https://kislyuk.github.io/yq/) (with `alias yq=lq`)
-- ~[1MB](https://github.com/clux/lq/releases/latest) in binary size (for small cloud CI images / [binstalled ci actions](https://github.com/cargo-bins/cargo-binstall#faq))
+- filetype format inference when passing files
+- quick input/output flags: `-y` (YAML out) or `-t` (TOML out), `-T` (TOML in), `-J` (JSON in)
+
+### Portable yq replacement
+
+- ~[1MB](https://github.com/clux/lq/releases/latest) in binary (for small CI images / [binstalled ci actions](https://github.com/cargo-bins/cargo-binstall#faq))
+- 99% replacement of [python-yq](https://kislyuk.github.io/yq/) (with `yq` named/linked to `lq`)
 
 ### Limitations
 
-- Shells out to `jq` (supports what your `jq` version supports)
+- Shells out to `jq` (not standalone)
 - Expands [YAML tags](https://yaml.org/spec/1.2-old/spec.html#id2764295) (input is [singleton mapped](https://docs.rs/serde_yaml/latest/serde_yaml/with/singleton_map/index.html) -> [recursively](https://docs.rs/serde_yaml/latest/serde_yaml/with/singleton_map_recursive/index.html), then [merged](https://docs.rs/serde_yaml/latest/serde_yaml/value/enum.Value.html#method.apply_merge)) - so tags are [not preserved](https://github.com/clux/lq/issues/12) in the output
 - Does not preserve indentation (unsupported in [serde_yaml](https://github.com/dtolnay/serde-yaml/issues/337))
 - Does not support [duplicate keys](https://github.com/clux/lq/issues/14) in the input document
-- No XML/CSV support (or other more exotic formats)
+- Formats require a [serde implementation](https://serde.rs/#data-formats).
+- Limited format support. No XML/CSV/RON support (or other more exotic formats). [KDL wanted](https://github.com/clux/lq/issues/56).
 
 ## Usage
 
-### YAML Input
-
+### YAML
 Use as [jq](https://jqlang.github.io/jq/tutorial/) either via stdin:
 
 ```sh
@@ -77,6 +67,11 @@ labels:
   app: controller
 name: controller
 namespace: default
+
+$ lq '.spec.template.spec.containers[].image' -r < test/grafana.yaml
+quay.io/kiwigrid/k8s-sidecar:1.24.6
+quay.io/kiwigrid/k8s-sidecar:1.24.6
+docker.io/grafana/grafana:10.1.0
 ```
 
 or from a file arg (at the end):
@@ -88,39 +83,49 @@ $ lq -y '.[3].metadata' test/deploy.yaml
 
 The default input format is YAML and is what the binary is named for (and the most common primary usage case).
 
+### TOML
 
-### TOML Input
-
-Using say `Cargo.toml` from this repo as input, and aliasing `tq='lq --input=toml'`:
+Infers input format from extension, or set explicitly via `-T` or `--input=toml`.
 
 ```sh
-$ tq '.package.categories[]' -r < Cargo.toml
+$ lq '.package.categories[]' -r Cargo.toml
 command-line-utilities
 parsing
+```
 
-$ tq -t '.package.metadata' < Cargo.toml
+convert jq output back into toml (`-t`):
+```sh
+$ lq -t '.package.metadata' Cargo.toml
 [binstall]
 bin-dir = "yq-{ target }/{ bin }{ format }"
 pkg-url = "{ repo }/releases/download/{ version }/yq-{ target }{ archive-suffix }"
+```
 
-$ tq -y '.dependencies.clap' < Cargo.toml
+convert jq output to yaml (`-y`) and set explicit toml input when using stdin (`-T`):
+
+```sh
+$ lq -Ty '.dependencies.clap' < Cargo.toml
 features:
 - cargo
 - derive
 version: 4.4.2
+```
 
-$ tq '.profile' -c < Cargo.toml
+jq style compact output:
+
+```sh
+$ lq '.profile' -c Cargo.toml
 {"release":{"lto":true,"panic":"abort","strip":"symbols"}}
 ```
 
-Add `alias tq='lq --input=toml'` to your `.bashrc` or `.zshrc` (etc) to make this permanent if you find it useful.
+Add an `alias tq='lq --input=toml'` in your `.bashrc` / `.zshrc` (etc) to make this permanent if you find it useful.
 
 ### JSON Input
 
-If you need to convert json to another format you pass `--input=json`:
+Infers input format from extension, or set explicitly via `-J` or `--input=json`.
 
 ```sh
-$ lq --input=json '.ingredients | keys' -y < test/guacamole.json
+$ lq -Jy '.ingredients | keys' < test/guacamole.json
 - avocado
 - coriander
 - cumin
@@ -132,17 +137,51 @@ $ lq --input=json '.ingredients | keys' -y < test/guacamole.json
 - tomatoes
 ```
 
-### Advanced Examples
-Select with nested query and raw output:
+### Formats
+Default is going from `yaml` input to `jq` output to allow further pipes into `jq`.
+
+- Input switches are capitalised (`-J` json input, `-T` toml input) and shorthands for `--input=FORMAT`
+- Output switches lower cased (`-y` yaml output, `-t` toml output) and shorthands for `--output=FORMAT`
+
+Ex;
+- `lq` :: yaml -> jq output
+- `lq -t` :: yaml -> toml
+- `lq -y`  :: yaml -> yaml
+- `lq -Tt` :: toml -> toml
+- `lq -Jy` :: json -> yaml
+- `jq -Ty` :: toml -> yaml
+- `jq -Jt` :: json -> toml
+
+Output formatting such as `-y` for YAML or `-t` for TOML will require the output from `jq` to be parseable json.
+If you pass on `-r`,`-c` or `-c` for raw/compact output, then this will generally not be parseable as json.
+
+
+### Advanced Features
+Two things you cannot do in `jq`:
+
+#### Multidoc Splits
+Split a bundle of yaml files into a yaml file per Kubernetes `.metadata.name` key:
 
 ```sh
-$ lq '.spec.template.spec.containers[].image' -r < test/grafana.yaml
-quay.io/kiwigrid/k8s-sidecar:1.24.6
-quay.io/kiwigrid/k8s-sidecar:1.24.6
-docker.io/grafana/grafana:10.1.0
+mkdir -p crds
+curl -sSL https://github.com/prometheus-operator/prometheus-operator/releases/download/v0.82.1/stripped-down-crds.yaml | lq . -y --split '"crds/" + (.metadata.name) + ".yaml"'
 ```
 
-Select on multidoc:
+#### In Place Edits
+Patch a json file
+
+```sh
+lq -i '.SKIP_HOST_UPDATE=true' ~/.config/discord/settings.json
+```
+
+[jq requires lots of pipes](https://github.com/jqlang/jq/issues/105).
+
+### Advanced jq
+Any weird things you can do with `jq` works. Some common (larger) examples:
+
+#### Selects
+
+Select on yaml multidoc:
 
 ```sh
 $ lq -y '.[] | select(.kind == "Deployment") | .spec.template.spec.containers[0].ports[0].containerPort' test/deploy.yaml
@@ -155,7 +194,8 @@ Escaping keys with slashes etc in them:
 lq -y '.updates[] | select(.["package-ecosystem"] == "cargo") | .groups' .github/dependabot.yml
 ```
 
-Using helpers from `jq` [modules](https://jqlang.github.io/jq/manual/#modules) e.g. [k.jq](https://github.com/clux/lq/blob/main/test/modules/k.jq):
+#### Modules
+You can import [jq modules](https://jqlang.github.io/jq/manual/#modules) e.g. [k.jq](https://github.com/clux/lq/blob/main/test/modules/k.jq):
 
 ```sh
 $ lq 'include "k"; .[] | gvk' -r -L$PWD/test/modules < test/deploy.yaml
@@ -165,11 +205,6 @@ rbac.authorization.k8s.io/v1.ClusterRoleBinding
 v1.Service
 apps/v1.Deployment
 ```
-
-### Output Caveats
-
-Output formatting such as `-y` for YAML or `-t` for TOML will require the output from `jq` to be parseable json.
-If you pass on `-r`,`-c` or `-c` for raw/compact output, then this will generally not be parseable as json.
 
 ### Debug Logs
 
@@ -185,3 +220,18 @@ $ RUST_LOG=debug lq '.version' test/circle.yml
 
 2.1
 ```
+
+### lq as yq
+Because yaml is the default input language, you __can__ use it as your top level `yq` executable with a symlink or alias:
+
+```sh
+# globally make yq be lq
+ln -s $(which lq) /usr/local/bin/yq
+
+# alias yq to lq in shell environment only
+alias yq=lq
+```
+
+It is mostly compatible with `python-yq` (which uses `jq` syntax) but differs from go yq (which invents its own syntax).
+
+(This use-case was the first use-case for this tool, i.e. to get rid of heavy python deps in CI images)

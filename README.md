@@ -1,4 +1,4 @@
-# lq - low overhead yq/tq/... implementation
+# lq - low overhead yq/tq/jq cli
 [![CI](https://github.com/clux/lq/actions/workflows/release.yml/badge.svg)](https://github.com/clux/lq/actions/workflows/release.yml)
 [![Crates.io](https://img.shields.io/crates/v/lq.svg)](https://crates.io/crates/lq)
 [![dependency status](https://deps.rs/repo/github/clux/lq/status.svg)](https://deps.rs/repo/github/clux/lq)
@@ -159,7 +159,8 @@ Split a bundle of yaml files into a yaml file per Kubernetes `.metadata.name` ke
 
 ```sh
 mkdir -p crds
-curl -sSL https://github.com/prometheus-operator/prometheus-operator/releases/download/v0.82.1/stripped-down-crds.yaml | lq . -y --split '"crds/" + (.metadata.name) + ".yaml"'
+curl -sSL https://github.com/prometheus-operator/prometheus-operator/releases/download/v0.82.1/stripped-down-crds.yaml \
+  | lq . -y --split '"crds/" + (.metadata.name) + ".yaml"'
 ```
 
 #### In Place Edits

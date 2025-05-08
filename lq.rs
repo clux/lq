@@ -317,7 +317,7 @@ impl Args {
             .spawn()?;
         // pass file input as stdin
         let mut stdin = child.stdin.take().unwrap();
-        stdin.write_all(&input).unwrap();
+        stdin.write_all(input).unwrap();
         drop(stdin);
         // then wait for exit and gather output
         let output = child.wait_with_output()?;

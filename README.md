@@ -35,6 +35,7 @@ cargo binstall lq
 - supports __multidoc yaml__ input, handles [yaml merge keys](https://yaml.org/type/merge.html) (expanding tags)
 - supports __multidoc__ document splitting into expression based filenames
 - supports __in-place edits__ of documents
+- maintains __key order__ even while roundtripping between formats
 - reads from __stdin xor file__ (file if last arg is a file)
 - filetype format inference when passing files
 - quick input/output flags: `-y` (YAML out) or `-t` (TOML out), `-T` (TOML in), `-J` (JSON in)

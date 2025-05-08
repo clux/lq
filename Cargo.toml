@@ -4,7 +4,7 @@ description = "low overhead yq/tq/jq cli"
 authors = [
     "clux <sszynrae@gmail.com>",
 ]
-version = "0.14.0"
+version = "0.15.0"
 license = "Apache-2.0"
 readme = "./README.md"
 repository = "https://github.com/clux/lq"

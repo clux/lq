@@ -143,9 +143,9 @@
 
 @test "key-order-deser" {
   # order files maintains deliberately non-alphabetical key ordering which would be re-ordered unless we have preserve order features
-  run lq '.' -c ./test/order.json
-  [ "$status" -eq 0 ]
-  echo "$output" && echo "$output" | grep '{"z":"normally last","a":"normally first"}'
+  # run lq '.' -c ./test/order.json
+  # [ "$status" -eq 0 ]
+  # echo "$output" && echo "$output" | grep '{"z":"normally last","a":"normally first"}'
 
   run lq '.' -c ./test/order.yaml
   [ "$status" -eq 0 ]
@@ -154,4 +154,26 @@
   run lq '.' -c ./test/order.toml
   [ "$status" -eq 0 ]
   echo "$output" && echo "$output" | grep '{"z":"normally last","a":"normally first"}'
+}
+
+@test "key-order-inplace" {
+  # inplace editing should not change order
+  lq '.b="last"' -i ./test/order.json
+  run lq '.' -c ./test/order.json
+  [ "$status" -eq 0 ]
+  echo "$output" && echo "$output" | grep '{"z":"normally last","a":"normally first","b":"last"}'
+  git restore ./test/order.json
+
+  lq '.b="last"' -iy ./test/order.yaml
+  run lq '.' -c ./test/order.yaml
+  [ "$status" -eq 0 ]
+  echo "$output" && echo "$output" | grep '{"z":"normally last","a":"normally first","b":"last"}'
+  git restore ./test/order.yaml
+
+  lq '.b="last"' -it ./test/order.toml
+  run lq '.' -c ./test/order.toml
+  [ "$status" -eq 0 ]
+  echo "$output" && echo "$output" | grep '{"z":"normally last","a":"normally first","b":"last"}'
+  git restore ./test/order.toml
+
 }

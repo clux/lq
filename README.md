@@ -178,14 +178,14 @@ Any weird things you can do with `jq` works. Some common (larger) examples:
 Select on yaml multidoc:
 
 ```sh
-$ lq -y '.[] | select(.kind == "Deployment") | .spec.template.spec.containers[0].ports[0].containerPort' test/deploy.yaml
+$ lq '.[] | select(.kind == "Deployment") | .spec.template.spec.containers[0].ports[0].containerPort' test/deploy.yaml
 8000
 ```
 
 Escaping keys with slashes etc in them:
 
 ```sh
-lq -y '.updates[] | select(.["package-ecosystem"] == "cargo") | .groups' .github/dependabot.yml
+lq '.updates[] | select(.["package-ecosystem"] == "cargo") | .groups' .github/dependabot.yml
 ```
 
 #### Modules

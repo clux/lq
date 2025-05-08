@@ -67,11 +67,6 @@ labels:
   app: controller
 name: controller
 namespace: default
-
-$ lq '.spec.template.spec.containers[].image' -r < test/grafana.yaml
-quay.io/kiwigrid/k8s-sidecar:1.24.6
-quay.io/kiwigrid/k8s-sidecar:1.24.6
-docker.io/grafana/grafana:10.1.0
 ```
 
 or from a file arg (at the end):
@@ -80,8 +75,6 @@ or from a file arg (at the end):
 $ lq '.[3].kind' -r test/deploy.yaml
 $ lq -y '.[3].metadata' test/deploy.yaml
 ```
-
-The default input format is YAML and is what the binary is named for (and the most common primary usage case).
 
 ### TOML
 
@@ -94,11 +87,12 @@ parsing
 ```
 
 convert jq output back into toml (`-t`):
+
 ```sh
 $ lq -t '.package.metadata' Cargo.toml
 [binstall]
-bin-dir = "yq-{ target }/{ bin }{ format }"
-pkg-url = "{ repo }/releases/download/{ version }/yq-{ target }{ archive-suffix }"
+bin-dir = "lq-{ target }/{ bin }{ format }"
+pkg-url = "{ repo }/releases/download/{ version }lq-{ target }{ archive-suffix }"
 ```
 
 convert jq output to yaml (`-y`) and set explicit toml input when using stdin (`-T`):
@@ -118,7 +112,7 @@ $ lq '.profile' -c Cargo.toml
 {"release":{"lto":true,"panic":"abort","strip":"symbols"}}
 ```
 
-Add an `alias tq='lq --input=toml'` in your `.bashrc` / `.zshrc` (etc) to make this permanent if you find it useful.
+To shortcut passing input formats, you can add `alias tq='lq --input=toml'` in your `.bashrc` / `.zshrc` (etc).
 
 ### JSON Input
 
@@ -137,11 +131,13 @@ $ lq -Jy '.ingredients | keys' < test/guacamole.json
 - tomatoes
 ```
 
+Using JSON input is kind of like talking to `jq` directly, with the benefit that you can change output formats, or do inplace edits.
+
 ### Formats
 Default is going from `yaml` input to `jq` output to allow further pipes into `jq`.
 
-- Input switches are capitalised (`-J` json input, `-T` toml input) and shorthands for `--input=FORMAT`
-- Output switches lower cased (`-y` yaml output, `-t` toml output) and shorthands for `--output=FORMAT`
+- **Input** flags are **upper case** :: `-J` json input, `-T` toml input (shorthands for `--input=FORMAT`)
+- **Output** flags are **lower case** :: `-y` yaml output, `-t` toml output (shorthands for `--output=FORMAT`)
 
 Ex;
 - `lq` :: yaml -> jq output
@@ -153,8 +149,7 @@ Ex;
 - `jq -Jt` :: json -> toml
 
 Output formatting such as `-y` for YAML or `-t` for TOML will require the output from `jq` to be parseable json.
-If you pass on `-r`,`-c` or `-c` for raw/compact output, then this will generally not be parseable as json.
-
+If you pass on `-r`,`-c` or `-c` for raw/compact output, then this output may not be parseable as json.
 
 ### Advanced Features
 Two things you cannot do in `jq`:
@@ -168,13 +163,11 @@ curl -sSL https://github.com/prometheus-operator/prometheus-operator/releases/do
 ```
 
 #### In Place Edits
-Patch a json file
+Patch a json file ([without multiple pipes](https://github.com/jqlang/jq/issues/105)):
 
 ```sh
 lq -i '.SKIP_HOST_UPDATE=true' ~/.config/discord/settings.json
 ```
-
-[jq requires lots of pipes](https://github.com/jqlang/jq/issues/105).
 
 ### Advanced jq
 Any weird things you can do with `jq` works. Some common (larger) examples:

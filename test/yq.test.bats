@@ -140,3 +140,18 @@
   run jq '.foo' test/split/bar.json -r
   echo "$output" && echo "$output" | grep "bar"
 }
+
+@test "key-order-deser" {
+  # order files maintains deliberately non-alphabetical key ordering which would be re-ordered unless we have preserve order features
+  run lq '.' -c ./test/order.json
+  [ "$status" -eq 0 ]
+  echo "$output" && echo "$output" | grep '{"z":"normally last","a":"normally first"}'
+
+  run lq '.' -c ./test/order.yaml
+  [ "$status" -eq 0 ]
+  echo "$output" && echo "$output" | grep '{"z":"normally last","a":"normally first"}'
+
+  run lq '.' -c ./test/order.toml
+  [ "$status" -eq 0 ]
+  echo "$output" && echo "$output" | grep '{"z":"normally last","a":"normally first"}'
+}

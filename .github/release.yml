@@ -3,7 +3,11 @@ changelog:
   exclude:
     labels: [exclude]
   categories:
+    - title: Changes
+      labels:
+        - '*'
+      exclude:
+        labels:
+          - dependencies
     - title: Dependencies
       labels: [dependencies]
-    - title: Changes
-      labels: ["*"]

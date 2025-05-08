@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/lq.svg)](https://crates.io/crates/lq)
 [![dependency status](https://deps.rs/repo/github/clux/lq/status.svg)](https://deps.rs/repo/github/clux/lq)
 
-A lightweight and portable [jq](https://jqlang.github.io/jq/) style cli for doing jq queries/filters/maps/transforms on **YAML**/**TOML**/**JSON** documents by converting to **JSON** and passing data to `jq`. Output is raw `jq` output / TOML / YAML.
+A lightweight and portable [jq](https://jqlang.github.io/jq/) style cli for doing jq queries/filters/maps/transforms on **YAML**/**TOML**/**JSON** documents by converting to **JSON** and passing data to `jq`. Output is raw `jq` output which can optionally be mapped to TOML or YAML.
 
 ## Installation
 

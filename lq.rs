@@ -64,6 +64,12 @@ struct Args {
         conflicts_with = "output"
     )]
     toml_output: bool,
+    /// Set input format to TOML (shortcut for --input=toml)
+    #[arg(short = 'T', long, default_value = "false", conflicts_with = "output")]
+    toml_input: bool,
+    /// Set input format to JSON (shortcut for --input=json)
+    #[arg(short = 'J', long, default_value = "false", conflicts_with = "output")]
+    json_input: bool,
 
     /// Edit the input file in place
     #[arg(short, long, default_value = "false")]
@@ -262,6 +268,12 @@ impl Args {
     fn infer_input_type(&self) -> Option<Input> {
         if let Some(input) = self.input {
             return Some(input); // always use what is asked for if explicit
+        }
+        if self.toml_input {
+            return Some(Input::Toml);
+        }
+        if self.json_input {
+            return Some(Input::Json);
         }
         let pbuf = self.file.clone()?;
         let ext_os = pbuf.extension()?;

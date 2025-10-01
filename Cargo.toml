@@ -19,13 +19,13 @@ name = "lq"
 path = "lq.rs"
 
 [dependencies]
-anyhow = "1.0.98"
-clap = { version = "4.5.42", features = ["cargo", "derive"] }
-serde_json = { version = "1.0.142", features = ["preserve_order"] }
-toml = { version = "0.9.4", features = ["display", "preserve_order"] }
+anyhow = "1.0.100"
+clap = { version = "4.5.48", features = ["cargo", "derive"] }
+serde_json = { version = "1.0.145", features = ["preserve_order"] }
+toml = { version = "0.9.7", features = ["display", "preserve_order"] }
 serde_yaml = "0.9.34"
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 
 [profile.release]
 lto = true

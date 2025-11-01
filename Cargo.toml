@@ -20,9 +20,9 @@ path = "lq.rs"
 
 [dependencies]
 anyhow = "1.0.100"
-clap = { version = "4.5.48", features = ["cargo", "derive"] }
+clap = { version = "4.5.51", features = ["cargo", "derive"] }
 serde_json = { version = "1.0.145", features = ["preserve_order"] }
-toml = { version = "0.9.7", features = ["display", "preserve_order"] }
+toml = { version = "0.9.8", features = ["display", "preserve_order"] }
 serde_yaml = "0.9.34"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }

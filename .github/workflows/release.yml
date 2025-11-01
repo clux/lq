@@ -140,7 +140,7 @@ jobs:
           dst="lq-${{ matrix.target }}"
           7z a "$dst.zip" "$dst"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: builds-${{ matrix.target }}
           retention-days: 1

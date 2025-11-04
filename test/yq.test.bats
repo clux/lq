@@ -58,7 +58,7 @@
 
 @test "toml" {
   run lq --input=toml -y '.package.edition' -r < Cargo.toml
-  echo "$output" && echo "$output" | grep '2021'
+  echo "$output" && echo "$output" | grep '2024'
   run lq -Ty '.package.edition' -r < Cargo.toml
 
   run lq '.dependencies.clap.features' -c Cargo.toml

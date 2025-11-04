@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
-use serde_yaml::{self, with::singleton_map_recursive, Deserializer};
-use std::io::{stderr, stdin, BufReader, IsTerminal, Read, Write};
+use serde_yaml::{self, Deserializer, with::singleton_map_recursive};
+use std::io::{BufReader, IsTerminal, Read, Write, stderr, stdin};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tracing::*;
@@ -383,7 +383,7 @@ impl Args {
 }
 
 fn init_env_tracing_stderr() -> Result<()> {
-    use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Registry};
+    use tracing_subscriber::{EnvFilter, Registry, layer::SubscriberExt};
     let logger = tracing_subscriber::fmt::layer().compact().with_writer(stderr);
     let env_filter = EnvFilter::try_from_default_env().or(EnvFilter::try_new("info"))?;
     let collector = Registry::default().with(logger).with(env_filter);

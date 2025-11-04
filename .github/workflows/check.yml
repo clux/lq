@@ -31,7 +31,7 @@ jobs:
     runs-on: "${{ matrix.platform }}-latest"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       #- uses: extractions/setup-just@v1
       - uses: mig4/setup-bats@v1
       - uses: taiki-e/install-action@v2
@@ -78,7 +78,7 @@ jobs:
     name: Check only for ${{ matrix.target }}
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Configure toolchain
         run: |
           rustup toolchain install stable --profile minimal --no-self-update --target ${{ matrix.target }}

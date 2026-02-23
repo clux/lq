@@ -1,6 +1,6 @@
 use anyhow::Result;
 use clap::{Parser, ValueEnum};
-use serde_yaml::{self, Deserializer, with::singleton_map_recursive};
+use serde_saphyr;
 use std::io::{BufReader, IsTerminal, Read, Write, stderr, stdin};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
@@ -162,34 +162,33 @@ impl Args {
     }
 
     fn read_yaml_docs(&mut self) -> Result<Vec<serde_json::Value>> {
-        let yaml_de = if let Some(f) = &self.file {
+        let data = if let Some(f) = &self.file {
             if !std::path::Path::new(&f).exists() {
                 Self::try_parse_from(["cmd", "-h"])?;
                 std::process::exit(2);
             }
             let file = std::fs::File::open(f)?;
-            // NB: can do everything async (via tokio + tokio_util) except this:
-            // serde only has a sync reader interface, so may as well do all sync.
-            Deserializer::from_reader(BufReader::new(file))
+            let mut buf_reader = BufReader::new(file);
+            let mut data = String::new();
+            buf_reader.read_to_string(&mut data)?;
+            data
         } else if !stdin().is_terminal() && !cfg!(test) {
             debug!("reading from stdin");
-            Deserializer::from_reader(stdin())
+            // use std::io::{stdin, Read};
+            let mut buf = Vec::new();
+            stdin().read_to_end(&mut buf)?;
+            let input = String::from_utf8(buf)?;
+            input
+            // serde_saphyr::from_reader(stdin())?
         } else {
             // NB: awkwardly prints a stack trace when people set RUST_STACKTRACE
             Self::try_parse_from(["cmd", "-h"])?;
             std::process::exit(2);
         };
-
-        let mut docs: Vec<serde_json::Value> = vec![];
-        for doc in yaml_de {
-            let json_value: serde_json::Value = {
-                let mut yaml_doc: serde_yaml::Value = singleton_map_recursive::deserialize(doc)?;
-                yaml_doc.apply_merge()?;
-                let yaml_ser = serde_yaml::to_string(&yaml_doc)?;
-                serde_yaml::from_str(&yaml_ser)?
-            };
-            docs.push(json_value);
-        }
+        let options = serde_saphyr::options! {
+            duplicate_keys: serde_saphyr::DuplicateKeyPolicy::FirstWins,
+        };
+        let docs = serde_saphyr::from_multiple_with_options(&data, options)?;
         debug!("found {} documents", docs.len());
         Ok(docs)
     }
@@ -345,10 +344,11 @@ impl Args {
                     .flatten()
                     .collect::<Vec<_>>();
                 debug!("parsed {} documents", docs.len());
+                // TODO: tagged_enums: true to convert
                 let output = match docs.as_slice() {
-                    [x] => serde_yaml::to_string(&x)?,
-                    [] => serde_yaml::to_string(&serde_json::json!({}))?,
-                    xs => serde_yaml::to_string(&xs)?,
+                    [x] => serde_saphyr::to_string(&x)?,
+                    [] => serde_saphyr::to_string(&serde_json::json!({}))?,
+                    xs => serde_saphyr::to_string(&xs)?,
                 };
                 Ok(output.trim_end().to_string())
             }
@@ -373,7 +373,7 @@ impl Args {
             let str_doc: String = match self.output {
                 // We even need jq output to be valid json in this case to allow multidoc to be matched up
                 Output::Jq => serde_json::to_string_pretty(&x)?,
-                Output::Yaml => serde_yaml::to_string(&x)?,
+                Output::Yaml => serde_saphyr::to_string(&x)?,
                 Output::Toml => toml::to_string(&x)?,
             };
             res.push(str_doc.trim_end().to_string());

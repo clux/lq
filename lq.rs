@@ -162,6 +162,9 @@ impl Args {
     }
 
     fn read_yaml_docs(&mut self) -> Result<Vec<serde_json::Value>> {
+        let options = serde_saphyr::options! {
+            duplicate_keys: serde_saphyr::DuplicateKeyPolicy::FirstWins,
+        };
         let data = if let Some(f) = &self.file {
             if !std::path::Path::new(&f).exists() {
                 Self::try_parse_from(["cmd", "-h"])?;
@@ -172,21 +175,19 @@ impl Args {
             let mut data = String::new();
             buf_reader.read_to_string(&mut data)?;
             data
+            // serde_saphyr::from_reader_with_options(BufReader::new(file), options)
         } else if !stdin().is_terminal() && !cfg!(test) {
             debug!("reading from stdin");
-            // use std::io::{stdin, Read};
+            use std::io::{Read, stdin};
             let mut buf = Vec::new();
             stdin().read_to_end(&mut buf)?;
             let input = String::from_utf8(buf)?;
             input
-            // serde_saphyr::from_reader(stdin())?
+            // serde_saphyr::from_reader_with_options(stdin(), options)
         } else {
             // NB: awkwardly prints a stack trace when people set RUST_STACKTRACE
             Self::try_parse_from(["cmd", "-h"])?;
             std::process::exit(2);
-        };
-        let options = serde_saphyr::options! {
-            duplicate_keys: serde_saphyr::DuplicateKeyPolicy::FirstWins,
         };
         let docs: Vec<serde_json::Value> = serde_saphyr::from_multiple_with_options(&data, options)?;
         debug!("found {} documents", docs.len());

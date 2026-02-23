@@ -188,7 +188,7 @@ impl Args {
         let options = serde_saphyr::options! {
             duplicate_keys: serde_saphyr::DuplicateKeyPolicy::FirstWins,
         };
-        let docs = serde_saphyr::from_multiple_with_options(&data, options)?;
+        let docs: Vec<serde_json::Value> = serde_saphyr::from_multiple_with_options(&data, options)?;
         debug!("found {} documents", docs.len());
         Ok(docs)
     }
@@ -196,6 +196,7 @@ impl Args {
     fn read_yaml(&mut self) -> Result<Vec<u8>> {
         // yaml is multidoc parsed by default, so flatten when <2 docs to conform to jq interface
         let docs = self.read_yaml_docs()?;
+        trace!("got {} yaml docs", docs.len());
         // if there is 1 or 0 documents, do not return as nested documents
         let ser = match docs.as_slice() {
             [x] => serde_json::to_vec(x)?,
@@ -338,17 +339,32 @@ impl Args {
             }
             // Other outputs are speculatively parsed as the requested formats
             Output::Yaml => {
-                // handle multidoc from jq output (e.g. '.[].name' type queries on multidoc input)
                 let docs = serde_json::Deserializer::from_slice(&stdout)
                     .into_iter::<serde_json::Value>()
                     .flatten()
                     .collect::<Vec<_>>();
-                debug!("parsed {} documents", docs.len());
-                // TODO: tagged_enums: true to convert
+                let options = serde_saphyr::ser_options! {
+                    indent_step: 2,
+                    tagged_enums: true,
+                };
+                // handle multidoc from jq output (e.g. '.[].name' type queries on multidoc input)
+                // let output = serde_saphyr::to_string_multiple(docs.as_slice())?;
                 let output = match docs.as_slice() {
-                    [x] => serde_saphyr::to_string(&x)?,
-                    [] => serde_saphyr::to_string(&serde_json::json!({}))?,
-                    xs => serde_saphyr::to_string(&xs)?,
+                    [x] => serde_saphyr::to_string_with_options(&x, options)?,
+                    [] => serde_saphyr::to_string_with_options(&serde_json::json!({}), options)?,
+                    ys => {
+                        // to_string_multiple does not have an options variant atm
+                        let mut out = String::new();
+                        let mut first = true;
+                        for y in ys {
+                            if !first {
+                                out.push_str("---\n");
+                            }
+                            first = false;
+                            out.push_str(&serde_saphyr::to_string_with_options(&y, options)?);
+                        }
+                        out
+                    }
                 };
                 Ok(output.trim_end().to_string())
             }

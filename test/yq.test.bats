@@ -105,7 +105,7 @@
 
 @test "multidoc-jq-output-to-yaml" {
   run lq '.[].metadata.labels' -y test/deploy.yaml
-  echo "$output" && echo "$output" | rg -U '\- null\n- null\n- null\n- app: controller\n- app: controller'
+  echo "$output" && echo "$output" | rg -U 'null\n---\nnull\n---\nnull\n---\napp: controller\n---\napp: controller'
 }
 
 @test "split-yaml-multi-to-yaml" {

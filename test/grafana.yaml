@@ -26,122 +26,122 @@ spec:
     spec:
       automountServiceAccountToken: true
       containers:
-      - env:
-        - name: METHOD
-          value: WATCH
-        - name: LABEL
-          value: grafana_dashboard
-        - name: LABEL_VALUE
-          value: '1'
-        - name: FOLDER
-          value: /tmp/dashboards
-        - name: RESOURCE
-          value: configmap
-        - name: NAMESPACE
-          value: ALL
-        - name: FOLDER_ANNOTATION
-          value: grafana_folder
-        - name: REQ_METHOD
-          value: POST
-        image: quay.io/kiwigrid/k8s-sidecar:1.24.6
-        imagePullPolicy: IfNotPresent
-        name: grafana-sc-dashboard
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          seccompProfile:
-            type: RuntimeDefault
-        volumeMounts:
-        - mountPath: /tmp/dashboards
-          name: sc-dashboard-volume
-      - env:
-        - name: METHOD
-          value: WATCH
-        - name: LABEL
-          value: grafana_datasource
-        - name: LABEL_VALUE
-          value: '1'
-        - name: FOLDER
-          value: /etc/grafana/provisioning/datasources
-        - name: RESOURCE
-          value: secret
-        - name: REQ_METHOD
-          value: POST
-        image: quay.io/kiwigrid/k8s-sidecar:1.24.6
-        imagePullPolicy: IfNotPresent
-        name: grafana-sc-datasources
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          seccompProfile:
-            type: RuntimeDefault
-        volumeMounts:
-        - mountPath: /etc/grafana/provisioning/datasources
-          name: sc-datasources-volume
-      - env:
-        - name: POD_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
-        - name: GF_PATHS_DATA
-          value: /var/lib/grafana/
-        - name: GF_PATHS_LOGS
-          value: /var/log/grafana
-        - name: GF_PATHS_PLUGINS
-          value: /var/lib/grafana/plugins
-        - name: GF_PATHS_PROVISIONING
-          value: /etc/grafana/provisioning
-        image: docker.io/grafana/grafana:10.1.0
-        imagePullPolicy: IfNotPresent
-        livenessProbe:
-          failureThreshold: 10
-          httpGet:
-            path: /api/health
-            port: 3000
-          initialDelaySeconds: 60
-          timeoutSeconds: 30
-        name: grafana
-        ports:
-        - containerPort: 3000
+        - env:
+            - name: METHOD
+              value: WATCH
+            - name: LABEL
+              value: grafana_dashboard
+            - name: LABEL_VALUE
+              value: "1"
+            - name: FOLDER
+              value: /tmp/dashboards
+            - name: RESOURCE
+              value: configmap
+            - name: NAMESPACE
+              value: ALL
+            - name: FOLDER_ANNOTATION
+              value: grafana_folder
+            - name: REQ_METHOD
+              value: POST
+          image: quay.io/kiwigrid/k8s-sidecar:1.24.6
+          imagePullPolicy: IfNotPresent
+          name: grafana-sc-dashboard
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - mountPath: /tmp/dashboards
+              name: sc-dashboard-volume
+        - env:
+            - name: METHOD
+              value: WATCH
+            - name: LABEL
+              value: grafana_datasource
+            - name: LABEL_VALUE
+              value: "1"
+            - name: FOLDER
+              value: /etc/grafana/provisioning/datasources
+            - name: RESOURCE
+              value: secret
+            - name: REQ_METHOD
+              value: POST
+          image: quay.io/kiwigrid/k8s-sidecar:1.24.6
+          imagePullPolicy: IfNotPresent
+          name: grafana-sc-datasources
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: sc-datasources-volume
+        - env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: GF_PATHS_DATA
+              value: /var/lib/grafana/
+            - name: GF_PATHS_LOGS
+              value: /var/log/grafana
+            - name: GF_PATHS_PLUGINS
+              value: /var/lib/grafana/plugins
+            - name: GF_PATHS_PROVISIONING
+              value: /etc/grafana/provisioning
+          image: docker.io/grafana/grafana:10.1.0
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 10
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 60
+            timeoutSeconds: 30
           name: grafana
-          protocol: TCP
-        - containerPort: 9094
-          name: gossip-tcp
-          protocol: TCP
-        - containerPort: 9094
-          name: gossip-udp
-          protocol: UDP
-        readinessProbe:
-          httpGet:
-            path: /api/health
-            port: 3000
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          seccompProfile:
-            type: RuntimeDefault
-        volumeMounts:
-        - mountPath: /etc/grafana/grafana.ini
-          name: config
-          subPath: grafana.ini
-        - mountPath: /var/lib/grafana
-          name: storage
-        - mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
-          name: config
-          subPath: datasources.yaml
-        - mountPath: /tmp/dashboards
-          name: sc-dashboard-volume
-        - mountPath: /etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml
-          name: sc-dashboard-provider
-          subPath: provider.yaml
-        - mountPath: /etc/grafana/provisioning/datasources
-          name: sc-datasources-volume
+          ports:
+            - containerPort: 3000
+              name: grafana
+              protocol: TCP
+            - containerPort: 9094
+              name: gossip-tcp
+              protocol: TCP
+            - containerPort: 9094
+              name: gossip-udp
+              protocol: UDP
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - mountPath: /etc/grafana/grafana.ini
+              name: config
+              subPath: grafana.ini
+            - mountPath: /var/lib/grafana
+              name: storage
+            - mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
+              name: config
+              subPath: datasources.yaml
+            - mountPath: /tmp/dashboards
+              name: sc-dashboard-volume
+            - mountPath: /etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml
+              name: sc-dashboard-provider
+              subPath: provider.yaml
+            - mountPath: /etc/grafana/provisioning/datasources
+              name: sc-datasources-volume
       enableServiceLinks: true
       securityContext:
         fsGroup: 472
@@ -150,15 +150,15 @@ spec:
         runAsUser: 472
       serviceAccountName: promstack-grafana
       volumes:
-      - configMap:
-          name: promstack-grafana
-        name: config
-      - emptyDir: {}
-        name: storage
-      - emptyDir: {}
-        name: sc-dashboard-volume
-      - configMap:
-          name: promstack-grafana-config-dashboards
-        name: sc-dashboard-provider
-      - emptyDir: {}
-        name: sc-datasources-volume
+        - configMap:
+            name: promstack-grafana
+          name: config
+        - emptyDir: {}
+          name: storage
+        - emptyDir: {}
+          name: sc-dashboard-volume
+        - configMap:
+            name: promstack-grafana-config-dashboards
+          name: sc-dashboard-provider
+        - emptyDir: {}
+          name: sc-datasources-volume

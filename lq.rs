@@ -163,7 +163,9 @@ impl Args {
 
     fn read_yaml_docs(&mut self) -> Result<Vec<serde_json::Value>> {
         let options = serde_saphyr::options! {
-            duplicate_keys: serde_saphyr::DuplicateKeyPolicy::FirstWins,
+            // allow duplicate keys in the awkward Kubernetes style by default
+            // TODO: allow passing a strict flag?
+            duplicate_keys: serde_saphyr::DuplicateKeyPolicy::LastWins,
         };
         let data = if let Some(f) = &self.file {
             if !std::path::Path::new(&f).exists() {

@@ -48,9 +48,9 @@ cargo binstall lq
 ### Limitations
 
 - Shells out to `jq` (not standalone - [for now](https://github.com/clux/lq/issues/64))
-- Expands [YAML tags](https://yaml.org/spec/1.2-old/spec.html#id2764295) (input is [singleton mapped](https://docs.rs/serde_yaml/latest/serde_yaml/with/singleton_map/index.html) -> [recursively](https://docs.rs/serde_yaml/latest/serde_yaml/with/singleton_map_recursive/index.html), then [merged](https://docs.rs/serde_yaml/latest/serde_yaml/value/enum.Value.html#method.apply_merge)) - so tags are [not preserved](https://github.com/clux/lq/issues/12) in the output
-- Does not preserve indentation (unsupported in [serde_yaml](https://github.com/dtolnay/serde-yaml/issues/337))
-- Halts on [duplicate keys](https://github.com/clux/lq/issues/14) in the input document
+- Expands [YAML tags](https://yaml.org/spec/1.2-old/spec.html#id2764295) as part of deserialization - so tags are [not preserved](https://github.com/clux/lq/issues/12) in the output
+- Does not preserve indentation (was unsupported in [serde_yaml](https://github.com/dtolnay/serde-yaml/issues/337), but could be done now with saphyr)
+- Halts on [DuplicateKeys](https://docs.rs/serde-saphyr/latest/serde_saphyr/options/enum.DuplicateKeyPolicy.html) in the input document (but [we could allow overriding this](https://github.com/clux/lq/issues/86))
 - Formats require a [serde implementation](https://serde.rs/#data-formats).
 - Limited format support. No XML/CSV/RON support (or other more exotic formats). [KDL wanted](https://github.com/clux/lq/issues/56).
 

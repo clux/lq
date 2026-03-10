@@ -9,7 +9,7 @@ license = "Apache-2.0"
 readme = "./README.md"
 repository = "https://github.com/clux/lq"
 edition = "2024"
-rust-version = "1.85.0"
+rust-version = "1.88.0"
 categories = ["command-line-utilities", "parsing"]
 keywords = ["yaml", "json", "toml", "query"]
 
@@ -23,9 +23,13 @@ anyhow = "1.0.100"
 clap = { version = "4.5.56", features = ["cargo", "derive"] }
 serde_json = { version = "1.0.149", features = ["preserve_order"] }
 toml = { version = "0.9.11", features = ["display", "preserve_order"] }
-serde_yaml = "0.9.34"
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
+# serde-saphyr = "0.0.20"
+
+[dependencies.serde-saphyr]
+git = "https://github.com/bourumir-wyngs/serde-saphyr.git"
+rev = "3aedc10b8202370d926ed456f8476563d1a70966"
 
 [profile.release]
 lto = true

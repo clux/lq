@@ -346,26 +346,14 @@ impl Args {
                     .collect::<Vec<_>>();
                 let options = serde_saphyr::ser_options! {
                     indent_step: 2,
+                    compact_list_indent: true,
                     tagged_enums: true,
                 };
                 // handle multidoc from jq output (e.g. '.[].name' type queries on multidoc input)
-                // let output = serde_saphyr::to_string_multiple(docs.as_slice())?;
                 let output = match docs.as_slice() {
                     [x] => serde_saphyr::to_string_with_options(&x, options)?,
                     [] => serde_saphyr::to_string_with_options(&serde_json::json!({}), options)?,
-                    ys => {
-                        // to_string_multiple does not have an options variant atm
-                        let mut out = String::new();
-                        let mut first = true;
-                        for y in ys {
-                            if !first {
-                                out.push_str("---\n");
-                            }
-                            first = false;
-                            out.push_str(&serde_saphyr::to_string_with_options(&y, options)?);
-                        }
-                        out
-                    }
+                    ys => serde_saphyr::to_string_multiple_with_options(ys, options)?,
                 };
                 Ok(output.trim_end().to_string())
             }

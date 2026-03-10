@@ -163,9 +163,10 @@ impl Args {
 
     fn read_yaml_docs(&mut self) -> Result<Vec<serde_json::Value>> {
         let options = serde_saphyr::options! {
-            // allow duplicate keys in the awkward Kubernetes style by default
-            // TODO: allow passing a strict flag?
-            duplicate_keys: serde_saphyr::DuplicateKeyPolicy::LastWins,
+            duplicate_keys: serde_saphyr::DuplicateKeyPolicy::Error, // want strict by default
+            // TODO: allow duplicate keys in the awkward Kubernetes style under a flag?
+            // https://github.com/clux/lq/issues/86
+            // duplicate_keys: serde_saphyr::DuplicateKeyPolicy::LastWins,
         };
         let data = if let Some(f) = &self.file {
             if !std::path::Path::new(&f).exists() {

@@ -25,7 +25,7 @@ serde_json = { version = "1.0.150", features = ["preserve_order"] }
 toml = { version = "1.1.2", features = ["display", "preserve_order"] }
 tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
-serde-saphyr = "0.0.27"
+serde-saphyr = "0.0.28"
 
 [profile.release]
 lto = true

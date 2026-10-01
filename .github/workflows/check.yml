@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v6
       #- uses: extractions/setup-just@v1
       - uses: mig4/setup-bats@v1
-      - uses: taiki-e/install-action@v2.87.1
+      - uses: taiki-e/install-action@v2.87.21
         with:
           tool: ripgrep
       - name: Configure toolchain
